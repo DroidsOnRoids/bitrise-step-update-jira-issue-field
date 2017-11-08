@@ -1,18 +1,10 @@
-#
-# A couple of useful guides & docs:
-#
-# - Main Bitrise CLI docs: https://github.com/bitrise-io/bitrise/tree/master/_docs
-# - Step Development Guideline: https://github.com/bitrise-io/bitrise/blob/master/_docs/step-development-guideline.md
-# - Bitrise.yml format spec: https://github.com/bitrise-io/bitrise/blob/master/_docs/bitrise-yml-format-spec.md
-# - Bitrise docs: http://devcenter.bitrise.io/
-# - Bitrise CLI guides: http://devcenter.bitrise.io/bitrise-cli/
-
 title: |-
   Update JIRA issue field
 summary: |
-  Updates JIRA issue field
+  Updates a JIRA issue field like `Fix version` or `Links`. Existing value is overwritten.
 description: |
-  TBD
+  See [What is an issue](https://confluence.atlassian.com/jira064/what-is-an-issue-720416138.html) for more information.
+  Any field available in issue edit screen can be updated.
 website: https://github.com/DroidsOnRoids/bitrise-step-update-jira-issue-field
 source_code_url: https://github.com/DroidsOnRoids/bitrise-step-update-jira-issue-field
 support_url: https://github.com/DroidsOnRoids/bitrise-step-update-jira-issue-field/issues
@@ -20,43 +12,13 @@ host_os_tags:
   - osx-10.10
   - ubuntu-16.04
 
-# If this step should be available only for certain project types
-# just uncomment this `project_type_tags` section and include all the
-# project types supported by the step. If the step can be used for all
-# project types then you can just remove this section.
-# If no `project_type_tags` specified (or specified as an empty array)
-# that means the step can be used for any project type.
-# You can find more information about project type tags in the Step Development Guideline:
-# https://github.com/bitrise-io/bitrise/blob/master/_docs/step-development-guideline.md
-#
-# project_type_tags:
-#   - ios
-#   - macos
-#   - android
-#   - xamarin
-#   - react-native
-#   - cordova
-#   - ionic
-
-# Type tags are used for categorizing steps, for easier step discovery in Step Libraries.
-# You can find more information about type tags in the Step Development Guideline:
-# https://github.com/bitrise-io/bitrise/blob/master/_docs/step-development-guideline.md
 type_tags:
   - utility
 
-is_requires_admin_user: true
+is_requires_admin_user: false
 is_always_run: false
 is_skippable: false
 run_if: ""
-
-deps:
-  brew:
-  - name: git
-  - name: wget
-  apt_get:
-  - name: git
-  - name: wget
-
 
 toolkit:
   go:
@@ -64,24 +26,52 @@ toolkit:
 
 
 inputs:
-  - example_step_input: Default Value - you can leave this empty if you want to
+  - jira_username:
     opts:
-      title: "Example Step Input"
-      summary: Summary. No more than 2-3 sentences.
-      description: |
-        Description of this input.
-
-        Can be Markdown formatted text.
+      title: "JIRA username"
+      summary: JIRA user (or bot) login.
       is_expand: true
       is_required: true
-      value_options: []
 
-outputs:
-  - EXAMPLE_STEP_OUTPUT:
+  - jira_password:
     opts:
-      title: "Example Step Output"
-      summary: Summary. No more than 2-3 sentences.
+      title: "JIRA user password"
+      summary: JIRA user (or bot) password or token.
       description: |
-        Description of this output.
+        See [API tokens documentation](https://confluence.atlassian.com/cloud/api-tokens-938839638.html)
+        for more information about API tokens.
+      is_expand: true
+      is_required: true
 
-        Can be Markdown formatted text.
+  - jira_instance_url:
+    opts:
+      title: "JIRA instance URL"
+      summary: JIRA instance URL e.g. `https://example.atlassian.net`.
+      is_expand: true
+      is_required: true
+
+  - issue_id_or_key:
+    opts:
+      title: "Issue id or key"
+      summary: Issue numeric id e.g. `100000` or key e.g. `FOO-123`.
+      is_expand: true
+      is_required: true
+
+  - field_key:
+    opts:
+      title: "Field key"
+      summary: Field in terms of API e.g. `reporter` or `customfield_11300`.
+      description: |
+        Available field keys are available in metadata for editing an issue. See [Get edit issue meta](https://docs.atlassian.com/jira/REST/cloud/#api/2/issue-getEditIssueMeta)
+        documentation for more information.
+      is_expand: true
+      is_required: true
+
+  - field_value:
+    opts:
+      title: "Field value"
+      summary: New value to be written into the field. May be empty.
+      description: |
+        Existing field value if any will be overwritten by this value.
+      is_expand: true
+      is_required: false

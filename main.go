@@ -3,14 +3,15 @@ package main
 import (
 	"errors"
 	"fmt"
-	"os"
 	"net/url"
+	"os"
 
-	"github.com/bitrise-io/go-utils/log"
-	"encoding/json"
-	"net/http"
 	"bytes"
+	"encoding/json"
+	"github.com/bitrise-io/go-utils/log"
 	"io/ioutil"
+	"net/http"
+	"strings"
 )
 
 // -----------------------
@@ -22,7 +23,7 @@ type ConfigsModel struct {
 	JiraUsername    string
 	JiraPassword    string
 	JiraInstanceURL string
-	IssueIdOrKey    string
+	IssueIDOrKey    string
 	FieldKey        string
 	FieldValue      string
 }
@@ -42,25 +43,26 @@ func main() {
 	}
 
 	if err := sendRequest(configs, payload); err != nil {
-		log.Errorf("JIRA API request failed, error: %s", err)
+		log.Errorf("Could not update issue, error: %s", err)
 		os.Exit(2)
 	}
 }
 
-func sendRequest(configs ConfigsModel, payload map[string]interface{}) (error) {
+func sendRequest(configs ConfigsModel, payload map[string]interface{}) error {
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
 
-	requestUrl := fmt.Sprintf("%s/rest/api/2/issue/%s", configs.JiraInstanceURL, configs.IssueIdOrKey)
-	request, err := http.NewRequest("PUT", requestUrl, bytes.NewBuffer(body))
+	requestURL := fmt.Sprintf("%s/rest/api/2/issue/%s", configs.JiraInstanceURL, configs.IssueIDOrKey)
+	request, err := http.NewRequest("PUT", requestURL, bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
 
 	request.SetBasicAuth(configs.JiraUsername, configs.JiraPassword)
 	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Accept", "application/json")
 
 	fmt.Println()
 	log.Infof("Performing request")
@@ -90,19 +92,21 @@ func sendRequest(configs ConfigsModel, payload map[string]interface{}) (error) {
 		if response.Header.Get("X-Seraph-LoginReason") == "AUTHENTICATION_DENIED" {
 			log.Warnf("CAPTCHA triggered")
 		}
-		return errors.New("Could not update JIRA issue")
+		return errors.New("JIRA API request failed")
 	}
+
+	log.Infof("Issue %s updated successfully", configs.IssueIDOrKey)
 	return nil
 }
 
 func createConfigsModelFromEnvs() ConfigsModel {
 	return ConfigsModel{
-		JiraUsername     :os.Getenv("JiraUsername"),
-		JiraPassword     :os.Getenv("JiraPassword"),
-		JiraInstanceURL  :os.Getenv("JiraInstanceURL"),
-		IssueIdOrKey :os.Getenv("issueIdOrKey"),
-		FieldKey     :os.Getenv("fieldKey"),
-		FieldValue   :os.Getenv("fieldValue"),
+		JiraUsername:    os.Getenv("jira_username"),
+		JiraPassword:    os.Getenv("jira_password"),
+		JiraInstanceURL: os.Getenv("jira_instance_url"),
+		IssueIDOrKey:    os.Getenv("issue_id_or_key"),
+		FieldKey:        os.Getenv("field_key"),
+		FieldValue:      os.Getenv("field_value"),
 	}
 }
 
@@ -110,9 +114,9 @@ func (configs ConfigsModel) dump() {
 	fmt.Println()
 	log.Infof("Configs:")
 	log.Printf(" - JiraUsername: %s", configs.JiraUsername)
-	log.Printf(" - JiraPassword: %v", configs.JiraPassword)
+	log.Printf(" - JiraPassword (hidden): %s", strings.Repeat("*", len(configs.JiraPassword)))
 	log.Printf(" - JiraInstanceURL: %s", configs.JiraInstanceURL)
-	log.Printf(" - IssueIdOrKey: %s", configs.IssueIdOrKey)
+	log.Printf(" - IssueIdOrKey: %s", configs.IssueIDOrKey)
 	log.Printf(" - FieldKey: %s", configs.FieldKey)
 	log.Printf(" - FieldValue: %s", configs.FieldValue)
 }
@@ -128,7 +132,7 @@ func (configs ConfigsModel) validate() error {
 	if err != nil {
 		return fmt.Errorf("invalid Jira instance URL, error %s", err)
 	}
-	if configs.IssueIdOrKey == "" {
+	if configs.IssueIDOrKey == "" {
 		return errors.New("no Jira issue ID nor key specified")
 	}
 	if configs.FieldKey == "" {
