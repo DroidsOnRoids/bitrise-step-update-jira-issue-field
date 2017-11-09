@@ -6,7 +6,7 @@ app:
   - JIRA_USERNAME: ${JIRA_USERNAME}
   - JIRA_PASSWORD: ${JIRA_PASSWORD}
   - JIRA_INSTANCE_URL: ${JIRA_INSTANCE_URL}
-  - ISSUE_KEY: ${ISSUE_KEY}
+  - ISSUE_KEY_LIST: ${ISSUE_KEY_LIST}
   - FIELD_KEY: ${FIELD_KEY}
   - FIELD_VALUE: ${FIELD_VALUE}
   - BITRISE_STEP_ID: update-jira-issue-field
@@ -68,7 +68,7 @@ workflows:
         - jira_username: ${JIRA_USERNAME}
         - jira_password: ${JIRA_PASSWORD}
         - jira_instance_url: ${JIRA_INSTANCE_URL}
-        - issue_id_or_key: ${ISSUE_KEY}
+        - issue_id_or_key_list: ${ISSUE_KEY_LIST}
         - field_key: ${FIELD_KEY}
         - field_value: ${FIELD_VALUE}
 

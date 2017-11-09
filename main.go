@@ -20,12 +20,12 @@ import (
 
 // ConfigsModel ...
 type ConfigsModel struct {
-	JiraUsername    string
-	JiraPassword    string
-	JiraInstanceURL string
-	IssueIDOrKey    string
-	FieldKey        string
-	FieldValue      string
+	JiraUsername     string
+	JiraPassword     string
+	JiraInstanceURL  string
+	IssueIDOrKeyList []string
+	FieldKey         string
+	FieldValue       string
 }
 
 func main() {
@@ -36,36 +36,41 @@ func main() {
 		os.Exit(1)
 	}
 
-	payload := map[string]interface{}{
-		"fields": map[string]interface{}{
-			configs.FieldKey: configs.FieldValue,
-		},
-	}
-
-	if err := sendRequest(configs, payload); err != nil {
+	if err := performRequests(configs); err != nil {
 		log.Errorf("Could not update issue, error: %s", err)
 		os.Exit(2)
 	}
 }
 
-func sendRequest(configs ConfigsModel, payload map[string]interface{}) error {
-	body, err := json.Marshal(payload)
-	if err != nil {
-		return err
+func createRequestBody(configs ConfigsModel) ([]byte, error) {
+	payload := map[string]interface{}{
+		"fields": map[string]interface{}{
+			configs.FieldKey: configs.FieldValue,
+		},
 	}
+	return json.Marshal(payload)
+}
 
-	requestURL := fmt.Sprintf("%s/rest/api/2/issue/%s", configs.JiraInstanceURL, configs.IssueIDOrKey)
+func createRequest(configs ConfigsModel, issueIDOrKey string, body []byte) (*http.Request, error) {
+	requestURL := fmt.Sprintf("%s/rest/api/2/issue/%s", configs.JiraInstanceURL, issueIDOrKey)
 	request, err := http.NewRequest("PUT", requestURL, bytes.NewBuffer(body))
 	if err != nil {
-		return err
+		return request, err
 	}
 
 	request.SetBasicAuth(configs.JiraUsername, configs.JiraPassword)
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "application/json")
+	return request, nil
+}
 
-	fmt.Println()
-	log.Infof("Performing request")
+func updateIssue(configs ConfigsModel, issueIDOrKey string, body []byte) error {
+	log.Infof("Updating issue %s", issueIDOrKey)
+
+	request, err := createRequest(configs, issueIDOrKey, body)
+	if err != nil {
+		return err
+	}
 
 	client := http.Client{}
 	response, err := client.Do(request)
@@ -87,27 +92,46 @@ func sendRequest(configs ConfigsModel, payload map[string]interface{}) error {
 		if readErr != nil {
 			return errors.New("could not read JIRA API response")
 		}
-		log.Warnf("JIRA API response: %s", contents)
-
 		if response.Header.Get("X-Seraph-LoginReason") == "AUTHENTICATION_DENIED" {
 			log.Warnf("CAPTCHA triggered")
+		} else {
+			log.Warnf("JIRA API response: %s", contents)
 		}
 		return errors.New("JIRA API request failed")
 	}
 
-	log.Infof("Issue %s updated successfully", configs.IssueIDOrKey)
+	log.Infof("Issue %s updated successfully", issueIDOrKey)
+	return nil
+}
+
+func performRequests(configs ConfigsModel) error {
+	body, err := createRequestBody(configs)
+	if err != nil {
+		return err
+	}
+
+	for _, idOrKey := range configs.IssueIDOrKeyList {
+		if err := updateIssue(configs, idOrKey, body); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
 func createConfigsModelFromEnvs() ConfigsModel {
-	return ConfigsModel{
-		JiraUsername:    os.Getenv("jira_username"),
-		JiraPassword:    os.Getenv("jira_password"),
-		JiraInstanceURL: os.Getenv("jira_instance_url"),
-		IssueIDOrKey:    os.Getenv("issue_id_or_key"),
-		FieldKey:        os.Getenv("field_key"),
-		FieldValue:      os.Getenv("field_value"),
+	configs := ConfigsModel{
+		JiraUsername:     os.Getenv("jira_username"),
+		JiraPassword:     os.Getenv("jira_password"),
+		JiraInstanceURL:  os.Getenv("jira_instance_url"),
+		IssueIDOrKeyList: strings.Split(os.Getenv("issue_id_or_key_list"), "|"),
+		FieldKey:         os.Getenv("field_key"),
+		FieldValue:       os.Getenv("field_value"),
 	}
+	for i, idOrKey := range configs.IssueIDOrKeyList {
+		configs.IssueIDOrKeyList[i] = strings.TrimSpace(idOrKey)
+	}
+	return configs
 }
 
 func (configs ConfigsModel) dump() {
@@ -116,7 +140,7 @@ func (configs ConfigsModel) dump() {
 	log.Printf(" - JiraUsername: %s", configs.JiraUsername)
 	log.Printf(" - JiraPassword (hidden): %s", strings.Repeat("*", len(configs.JiraPassword)))
 	log.Printf(" - JiraInstanceURL: %s", configs.JiraInstanceURL)
-	log.Printf(" - IssueIdOrKey: %s", configs.IssueIDOrKey)
+	log.Printf(" - IssueIdOrKeyList: %v", configs.IssueIDOrKeyList)
 	log.Printf(" - FieldKey: %s", configs.FieldKey)
 	log.Printf(" - FieldValue: %s", configs.FieldValue)
 }
@@ -132,8 +156,13 @@ func (configs ConfigsModel) validate() error {
 	if err != nil {
 		return fmt.Errorf("invalid Jira instance URL, error %s", err)
 	}
-	if configs.IssueIDOrKey == "" {
-		return errors.New("no Jira issue ID nor key specified")
+	if len(configs.IssueIDOrKeyList) == 0 {
+		return errors.New("no Jira issue IDs nor keys specified")
+	}
+	for i, idOrKey := range configs.IssueIDOrKeyList {
+		if idOrKey == "" {
+			return fmt.Errorf("empty Jira issue ID nor key specified at index %d", i)
+		}
 	}
 	if configs.FieldKey == "" {
 		return errors.New("no field key specified")

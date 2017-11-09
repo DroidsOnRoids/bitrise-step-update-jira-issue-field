@@ -50,10 +50,10 @@ inputs:
       is_expand: true
       is_required: true
 
-  - issue_id_or_key:
+  - issue_id_or_key_list:
     opts:
-      title: "Issue id or key"
-      summary: Issue numeric id e.g. `100000` or key e.g. `FOO-123`.
+      title: "List of issue ids or keys"
+      summary: Issues numeric ids e.g. `100000` or keys e.g. `FOO-123`, separated by `|`. At least one element has to be specified. White spaces are trimmed.
       is_expand: true
       is_required: true
 
