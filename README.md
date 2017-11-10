@@ -1,6 +1,6 @@
 # Update JIRA issue field
 
-TBD
+Updates a JIRA issues field like `Fix version` or `Links`. Existing value is overwritten.
 
 
 ## How to use this Step
