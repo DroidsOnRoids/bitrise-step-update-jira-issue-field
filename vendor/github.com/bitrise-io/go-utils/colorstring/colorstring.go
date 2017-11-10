@@ -9,14 +9,14 @@ import (
 type Color string
 
 const (
-	blackColor Color = "\x1b[30;1m"
-	redColor Color = "\x1b[31;1m"
-	greenColor Color = "\x1b[32;1m"
-	yellowColor Color = "\x1b[33;1m"
-	blueColor Color = "\x1b[34;1m"
+	blackColor   Color = "\x1b[30;1m"
+	redColor     Color = "\x1b[31;1m"
+	greenColor   Color = "\x1b[32;1m"
+	yellowColor  Color = "\x1b[33;1m"
+	blueColor    Color = "\x1b[34;1m"
 	magentaColor Color = "\x1b[35;1m"
-	cyanColor Color = "\x1b[36;1m"
-	resetColor Color = "\x1b[0m"
+	cyanColor    Color = "\x1b[36;1m"
+	resetColor   Color = "\x1b[0m"
 )
 
 // ColorFunc ...
