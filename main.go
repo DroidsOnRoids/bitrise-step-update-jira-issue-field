@@ -138,7 +138,7 @@ func (configs ConfigsModel) dump() {
 	fmt.Println()
 	log.Infof("Configs:")
 	log.Printf(" - JiraUsername: %s", configs.JiraUsername)
-	log.Printf(" - JiraPassword (hidden): %s", strings.Repeat("*", len(configs.JiraPassword)))
+	log.Printf(" - JiraPassword (hidden): %s", strings.Repeat("*", 5))
 	log.Printf(" - JiraInstanceURL: %s", configs.JiraInstanceURL)
 	log.Printf(" - IssueIdOrKeyList: %v", configs.IssueIDOrKeyList)
 	log.Printf(" - FieldKey: %s", configs.FieldKey)
