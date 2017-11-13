@@ -1,18 +1,19 @@
 title: |-
   Update JIRA issues field
 summary: |
-  Updates a JIRA issues field like `Fix version` or `Links`. Existing value is overwritten.
+  Updates a JIRA [issues](https://confluence.atlassian.com/jira064/what-is-an-issue-720416138.html) field like `Fix version` or `Links`. Existing value is overwritten.
 description: |
-  See [What is an issue](https://confluence.atlassian.com/jira064/what-is-an-issue-720416138.html) for more information.
-  Any field available in issue edit screen can be updated.
-  Multiple issues can be specified, all of them are updated in the same way.
-  Field value may be removed by specyfying new ewmpty value.
+  Updates a JIRA [issues](https://confluence.atlassian.com/jira064/what-is-an-issue-720416138.html) fields like `Fix version` or `Links`.
+
+  User specified in `jira_username` input must have `Edit Issue` permission granted.
+  See [Managing project permissions](https://confluence.atlassian.com/adminjiracloud/managing-project-permissions-776636362.html) for more information.
+
+  Any field available on the issue edit screen can be updated. Multiple issues can be specified, all of them are updated in the same way.
+
+  Field value may be removed by specifying new empty value.
 website: https://github.com/DroidsOnRoids/bitrise-step-update-jira-issue-field
 source_code_url: https://github.com/DroidsOnRoids/bitrise-step-update-jira-issue-field
 support_url: https://github.com/DroidsOnRoids/bitrise-step-update-jira-issue-field/issues
-host_os_tags:
-  - osx-10.10
-  - ubuntu-16.04
 
 type_tags:
   - utility

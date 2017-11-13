@@ -71,6 +71,13 @@ workflows:
         - issue_id_or_key_list: ${ISSUE_KEY_LIST}
         - field_key: ${FIELD_KEY}
         - field_value: ${FIELD_VALUE}
+    - script:
+        title: Step Test skip info
+        run_if: '{{enveq "JIRA_INSTANCE_URL" ""}}'
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            echo "Step test skipped due to missing JIRA credentials"
 
 
   # ----------------------------------------------------------------
