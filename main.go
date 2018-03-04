@@ -22,6 +22,7 @@ import (
 type ConfigsModel struct {
 	JiraUsername     string
 	JiraPassword     string
+	JiraCookie       string
 	JiraInstanceURL  string
 	IssueIDOrKeyList []string
 	FieldKey         string
@@ -58,7 +59,16 @@ func createRequest(configs ConfigsModel, issueIDOrKey string, body []byte) (*htt
 		return request, err
 	}
 
-	request.SetBasicAuth(configs.JiraUsername, configs.JiraPassword)
+	if configs.JiraCookie == "" {
+		request.SetBasicAuth(configs.JiraUsername, configs.JiraPassword)
+	} else {
+		parsedCookie := strings.SplitN(configs.JiraCookie, "=", 2)
+		cookie := http.Cookie{
+			Name:  parsedCookie[0],
+			Value: parsedCookie[1],
+		}
+		request.AddCookie(&cookie)
+	}
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "application/json")
 	return request, nil
@@ -123,6 +133,7 @@ func createConfigsModelFromEnvs() ConfigsModel {
 	configs := ConfigsModel{
 		JiraUsername:     os.Getenv("jira_username"),
 		JiraPassword:     os.Getenv("jira_password"),
+		JiraCookie:       os.Getenv("jira_cookie"),
 		JiraInstanceURL:  os.Getenv("jira_instance_url"),
 		IssueIDOrKeyList: strings.Split(os.Getenv("issue_id_or_key_list"), "|"),
 		FieldKey:         os.Getenv("field_key"),
@@ -137,8 +148,12 @@ func createConfigsModelFromEnvs() ConfigsModel {
 func (configs ConfigsModel) dump() {
 	fmt.Println()
 	log.Infof("Configs:")
-	log.Printf(" - JiraUsername: %s", configs.JiraUsername)
-	log.Printf(" - JiraPassword (hidden): %s", strings.Repeat("*", 5))
+	if configs.JiraCookie == "" {
+		log.Printf(" - JiraUsername: %s", configs.JiraUsername)
+		log.Printf(" - JiraPassword (hidden): %s", strings.Repeat("*", 5))
+	} else {
+		log.Printf(" - JiraCookie (hidden): %s", strings.Repeat("*", 5))
+	}
 	log.Printf(" - JiraInstanceURL: %s", configs.JiraInstanceURL)
 	log.Printf(" - IssueIdOrKeyList: %v", configs.IssueIDOrKeyList)
 	log.Printf(" - FieldKey: %s", configs.FieldKey)
@@ -146,12 +161,19 @@ func (configs ConfigsModel) dump() {
 }
 
 func (configs ConfigsModel) validate() error {
-	if configs.JiraUsername == "" {
-		return errors.New("no Jira Username specified")
+	if configs.JiraCookie == "" {
+		if configs.JiraUsername == "" {
+			return errors.New("no Jira cookie nor username specified")
+		}
+		if configs.JiraPassword == "" {
+			return errors.New("no Jira cookie nor password specified")
+		}
+	} else {
+		if strings.Index(configs.JiraCookie, "=") == -1 {
+			return fmt.Errorf("invalid cookie specified (missing key-value separator): %s", configs.JiraCookie)
+		}
 	}
-	if configs.JiraPassword == "" {
-		return errors.New("no Jira Password specified")
-	}
+
 	_, err := url.ParseRequestURI(configs.JiraInstanceURL)
 	if err != nil {
 		return fmt.Errorf("invalid Jira instance URL, error %s", err)

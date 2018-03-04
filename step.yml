@@ -11,6 +11,8 @@ description: |
   Any field available on the issue edit screen can be updated. Multiple issues can be specified, all of them are updated in the same way.
 
   Field value may be removed by specifying new empty value.
+
+  Either basic (password/token) or cookie-based authentication can be used. Thus either `jira_username` with `jira_password` or `jira_cookie` inputs must be specified.
 website: https://github.com/DroidsOnRoids/bitrise-step-update-jira-issue-field
 source_code_url: https://github.com/DroidsOnRoids/bitrise-step-update-jira-issue-field
 support_url: https://github.com/DroidsOnRoids/bitrise-step-update-jira-issue-field/issues
@@ -32,19 +34,29 @@ inputs:
   - jira_username:
     opts:
       title: "JIRA username"
-      summary: JIRA user (or bot) login.
+      summary: JIRA user (or bot) login. Ignored if `jira_cookie` is specified.
       is_expand: true
-      is_required: true
+      is_required: false
 
   - jira_password:
     opts:
       title: "JIRA user password"
-      summary: JIRA user (or bot) password or token.
+      summary: JIRA user (or bot) password or token. Ignored if `jira_cookie` is specified.
       description: |
         See [API tokens documentation](https://confluence.atlassian.com/cloud/api-tokens-938839638.html)
         for more information about API tokens.
       is_expand: true
-      is_required: true
+      is_required: false
+
+  - jira_cookie:
+    opts:
+      title: "JIRA authentication cookie"
+      summary: JIRA user (or bot) authentication cookie.
+      description: |
+        See [Cookie-based auth for REST APIs](https://developer.atlassian.com/cloud/jira/platform/jira-rest-api-cookie-based-authentication/)
+        for more information about cookie-based auth.
+      is_expand: true
+      is_required: false
 
   - jira_instance_url:
     opts:
