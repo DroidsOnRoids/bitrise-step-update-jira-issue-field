@@ -41,6 +41,18 @@ func TestValidateConfigMissingFieldKey(t *testing.T) {
 	require.Error(t, configs.validate())
 }
 
+func TestValidateConfigInvalidCookie(t *testing.T) {
+	configs := createDummyConfigs()
+	configs.JiraCookie = "dummy"
+	require.Error(t, configs.validate())
+}
+
+func TestValidateConfigValidCookie(t *testing.T) {
+	configs := createDummyConfigs()
+	configs.JiraCookie = "key=value"
+	require.NoError(t, configs.validate())
+}
+
 func createDummyConfigs() ConfigsModel {
 	return ConfigsModel{
 		JiraUsername:     "login",
