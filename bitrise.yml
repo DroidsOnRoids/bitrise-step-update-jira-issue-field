@@ -11,7 +11,7 @@ app:
   - FIELD_VALUE: ${FIELD_VALUE}
   - BITRISE_STEP_ID: update-jira-issue-field
   - BITRISE_STEP_VERSION: "1.0.1"
-  - BITRISE_STEP_GIT_CLONE_URL: https://github.com/DroidsOnRoids/bitrise-step-update-jira-issue-field
+  - BITRISE_STEP_GIT_CLONE_URL: https://github.com/DroidsOnRoids/bitrise-step-update-jira-issue-field.git
   - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
 
 workflows:
