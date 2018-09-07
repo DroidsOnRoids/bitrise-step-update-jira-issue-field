@@ -10,46 +10,16 @@ app:
   - FIELD_KEY: ${FIELD_KEY}
   - FIELD_VALUE: ${FIELD_VALUE}
   - BITRISE_STEP_ID: update-jira-issue-field
-  - BITRISE_STEP_VERSION: "1.0.1"
+  - BITRISE_STEP_VERSION: "1.0.2"
   - BITRISE_STEP_GIT_CLONE_URL: https://github.com/DroidsOnRoids/bitrise-step-update-jira-issue-field.git
   - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
 
 workflows:
   test:
     steps:
-    - script:
-        title: Install testing tools
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash
-            set -ex
-            # Check for unhandled errors
-            go get -u -v github.com/kisielk/errcheck
-            # Go lint
-            go get -u -v github.com/golang/lint/golint
-    - script:
-        title: Err check
-        inputs:
-        - content: errcheck -asserts=true -blank=true $GOLIST_WITHOUT_VENDOR
-    - script:
-        title: Go lint
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash
-            set -e
-            while read -r line; do
-              echo "-> Linting: $line"
-              golint_out="$(golint $line)"
-              if [[ "${golint_out}" != "" ]] ; then
-                echo "=> Golint issues found:"
-                echo "${golint_out}"
-                exit 1
-              fi
-            done <<< "$GOLIST_WITHOUT_VENDOR"
-    - script:
-        title: Go test
-        inputs:
-        - content: go test
+    - errcheck: {}
+    - golint: {}
+    - go-test: {}
     - change-workdir:
         title: Switch working dir to test / _tmp dir
         description: |-
