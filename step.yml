@@ -37,6 +37,7 @@ inputs:
       summary: JIRA user (or bot) login. Ignored if `jira_cookie` is specified.
       is_expand: true
       is_required: false
+      is_sensitive: true
 
   - jira_password:
     opts:
